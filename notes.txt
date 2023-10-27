@@ -1,0 +1,139 @@
+sidebar:
+  - label: User
+    table: userGetAll
+
+  - label: User Reward
+    table: userRewardGetAll
+
+  - label: User Point
+    table: userPointGetAll
+
+  - label: Struk
+    table: strukGetAll
+
+  - label: Reward
+    table: rewardGetAll
+
+
+//============================================================================    
+
+table:
+  usecase: userGetAll
+  columns:
+    - id
+    - name
+    - createdDate
+    - totalPoints
+    - status
+  form:
+    - userCreate
+    - userChangeStatus
+
+table:
+  usecase: userRewardGetAll
+  columns:
+    - id
+    - status
+    - approvalDate
+    - createdDate
+    - [user]
+    - [reward]
+  form:
+    - userRewardApproval
+
+table:
+  usecase: userPointGetAll
+  columns:
+    - id
+    - [user]
+    - point
+    - createdDate    
+
+table:
+  usecase: strukGetAll
+  columns:
+    - id
+    - status
+    - approvalDate
+    - createdDate
+    - billNumber
+    - totalTransaksi
+    - [user]
+    - [screenshot]
+  form:
+    - strukUpload    
+    - strukApproval
+
+table:
+  usecase: rewardGetAll
+  columns:
+    - id
+    - createdDate
+    - title
+    - description
+    - point
+    - stock
+    - [image]  
+  form:
+    - rewardCreate
+    - rewardRedeem
+
+
+//============================================================================
+
+form:
+  usecase: userCreate
+  inputs:
+    - name
+
+form:
+  usecase: userChangeStatus
+  inputs:
+    - status
+  params:
+    - userID
+
+form:
+  usecase: userRewardApproval
+  inputs:
+    - status
+  params:
+    - userRewardID    
+
+form:
+  usecase: strukUpload
+  inputs:
+    - billNumber
+    - totalTransaksi
+    - screenshot
+  headers:
+    - userID   
+
+form:
+  usecase: strukApproval
+  inputs:
+    - status
+  params:
+    - userRewardID    
+
+
+form:
+  usecase: rewardCreate
+  inputs:
+    - title
+    - description
+    - point
+    - stock
+    - image
+  params:
+    - userRewardID    
+
+
+form:
+  usecase: rewardRedeem
+  inputs:
+    - status
+  params:
+    - rewardID
+  headers:
+    - userID   
