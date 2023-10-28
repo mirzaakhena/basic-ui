@@ -130,18 +130,21 @@ const generateFormItem = (fieldNames: (string | number)[], field: InputType[keyo
         const properties = field.items.properties;
 
         return (
-          <Form.Item label={lastFieldName}>
+          <Form.Item
+            key={lastFieldName}
+            label={lastFieldName}
+          >
             <Form.List name={fieldNames}>
               {(fields, opt) => {
                 return (
                   <>
                     {fields.map((xfield) => {
-                      console.log(xfield.name);
-
                       return (
-                        <Form.Item name={[xfield.name]}>
+                        <Form.Item
+                          key={xfield.name}
+                          name={[xfield.name]}
+                        >
                           <CardForm
-                            key={xfield.name}
                             json={properties}
                             previousField={[xfield.name]}
                             extra={
@@ -236,13 +239,6 @@ const generateDefaultValueJSON = (json: InputType): Record<string, any> => {
   return defaultValueObject;
 };
 
-// const dataJSON2: InputType = {
-//   name: { type: "string", default: "mirza", summary: "name of the user", required: true },
-//   age: { type: "number", default: 27, summary: "age of the user" },
-//   gender: { type: "string", enum: ["pria", "wanita"], required: true, default: "pria", summary: "jenis kelamin" },
-//   birthDate: { type: "date", default: "2000-01-02 00:00:00" },
-// };
-
 const CardForm: React.FC<{ json: InputType; previousField: (string | number)[]; extra?: React.ReactNode }> = ({ json, previousField, extra }) => {
   //
 
@@ -324,9 +320,3 @@ export default DynamicForm;
 // textarea
 // max min
 // map
-
-{
-  /* <Typography>
-<pre style={{ margin: "0px" }}>{JSON.stringify(jsonObject, null, 2)}</pre>
-</Typography> */
-}
