@@ -1,4 +1,5 @@
-import { Button, Card, Checkbox, DatePicker, Form, FormInstance, Input, InputNumber, Select, Typography } from "antd";
+import { CloseOutlined } from "@ant-design/icons";
+import { Button, Card, Checkbox, Col, DatePicker, Form, FormInstance, Input, InputNumber, Row, Select, Space, Typography } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import dayjs from "dayjs";
 import dayjsPluginUTC from "dayjs/plugin/utc";
@@ -135,22 +136,28 @@ const generateFormItem = (fieldNames: (string | number)[], field: InputType[keyo
                 return (
                   <>
                     {fields.map((xfield) => {
-                      //
+                      console.log(xfield.name);
 
                       return (
-                        // <Input key={`${lastFieldName}-${xfield.key}`} />
-
                         <Form.Item name={[xfield.name]}>
                           <CardForm
+                            key={xfield.name}
                             json={properties}
                             previousField={[xfield.name]}
+                            extra={
+                              <CloseOutlined
+                                onClick={() => {
+                                  opt.remove(xfield.name);
+                                }}
+                              />
+                            }
                           />
                         </Form.Item>
                       );
                     })}
 
                     <Button
-                      style={{ marginTop: "10px" }}
+                      // style={{ marginTop: "10px" }}
                       type="dashed"
                       onClick={() => opt.add()}
                       block
@@ -236,18 +243,18 @@ const generateDefaultValueJSON = (json: InputType): Record<string, any> => {
 //   birthDate: { type: "date", default: "2000-01-02 00:00:00" },
 // };
 
-const CardForm: React.FC<{ json: InputType; previousField: (string | number)[] }> = ({ json, previousField }) => {
+const CardForm: React.FC<{ json: InputType; previousField: (string | number)[]; extra?: React.ReactNode }> = ({ json, previousField, extra }) => {
   //
 
   return (
     <>
       <Card
         style={{
-          // marginRight: "20px",
-          minWidth: "400px",
-          borderWidth: "2px",
-          borderColor: "red",
+          margin: previousField.length === 0 ? "20px" : "0px",
+          borderWidth: "4px",
+          borderColor: "gray",
         }}
+        extra={extra}
       >
         {generateForm(json, previousField)}
       </Card>
@@ -257,12 +264,6 @@ const CardForm: React.FC<{ json: InputType; previousField: (string | number)[] }
 
 const DynamicForm: React.FC<{ json: InputType }> = ({ json }) => {
   //
-
-  // const [childCards, setChildCards] = useState<React.ReactNode[]>([]);
-
-  // const onAddCard = () => {
-  //   setChildCards([...childCards, <CardForm json={dataJSON2} />]);
-  // };
 
   const [form] = useForm();
 
@@ -276,44 +277,43 @@ const DynamicForm: React.FC<{ json: InputType }> = ({ json }) => {
     setJSONObject(generateDefaultValueJSON(json));
   };
 
-  useEffect(() => form.resetFields(), [jsonObject]);
-
-  const showJSON = () => {
-    setJSONObject(form.getFieldsValue());
-  };
-
-  form.setFieldValue(["aaa", "bbb"], "");
+  useEffect(() => {
+    form.resetFields();
+  }, [jsonObject]);
 
   return (
-    <div
-      style={{
-        margin: "20px",
-      }}
+    <Form
+      autoComplete="off"
+      form={form}
+      initialValues={jsonObject}
     >
-      <div style={{ display: "flex", overflowX: "auto" }}>
-        <Form
-          autoComplete="off"
-          form={form}
-          initialValues={jsonObject}
-          // labelCol={{ span: 10 }}
-          // wrapperCol={{ span: 30 }}
-        >
+      <Row>
+        <Col>
           <CardForm
             json={json}
             previousField={[]}
+            extra={
+              <Space>
+                <Button onClick={onClear}>Clear All</Button>
+                <Button onClick={onReset}>Reset All</Button>
+              </Space>
+            }
           />
-          {/* {childCards} */}
-
-          <Button onClick={onClear}>Clear All</Button>
-          <Button onClick={onReset}>Reset All</Button>
-          <Button onClick={showJSON}>Show JSON</Button>
-          <Typography>
-            <pre style={{ margin: "0px" }}>{JSON.stringify(jsonObject, null, 2)}</pre>
-          </Typography>
-        </Form>
-      </div>
-      {/* <Button onClick={onAddCard}>Add New Card</Button> */}
-    </div>
+        </Col>
+        <Col>
+          <Form.Item
+            noStyle
+            shouldUpdate
+          >
+            {() => (
+              <Typography>
+                <pre>{JSON.stringify(form.getFieldsValue(), null, 2)}</pre>
+              </Typography>
+            )}
+          </Form.Item>
+        </Col>
+      </Row>
+    </Form>
   );
 };
 
