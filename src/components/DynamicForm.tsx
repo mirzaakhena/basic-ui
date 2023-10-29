@@ -16,6 +16,12 @@ export type BasicType = {
   required?: boolean;
 };
 
+export type StringField = {
+  type: "string";
+  enum?: (string | boolean | number)[];
+  isPassword?: boolean;
+};
+
 export type EnumerableField = {
   type: "string" | "number" | "boolean" | "date";
   enum?: (string | boolean | number)[];
@@ -160,7 +166,6 @@ const generateFormItem = (fieldNames: (string | number)[], field: InputType[keyo
                     })}
 
                     <Button
-                      // style={{ marginTop: "10px" }}
                       type="dashed"
                       onClick={() => opt.add()}
                       block
@@ -220,20 +225,61 @@ const generateDefaultValueJSON = (json: InputType): Record<string, any> => {
     //
     const field = json[fieldName];
 
-    if (field.type === "array") {
-      if (field.items.default !== undefined) {
-        defaultValueObject[fieldName] = field.items.default;
-      }
-    }
-    if (field.type === "object") {
+    if (field.type === "array" && field.items.default !== undefined) {
+      defaultValueObject[fieldName] = field.items.default;
+      //
+    } else if (field.type === "object") {
       defaultValueObject[fieldName] = generateDefaultValueJSON(field.properties);
       //
     } else if (field.default !== undefined) {
+      //
       if (field.type === "date") {
         defaultValueObject[fieldName] = dayjs.utc(field.default, dateTimeFormat);
+        //
       } else {
         defaultValueObject[fieldName] = field.default;
       }
+    }
+  }
+  return defaultValueObject;
+};
+
+const generateEmptyValueJSON = (json: InputType): Record<string, any> => {
+  //
+  const defaultValueObject: Record<string, any> = {};
+
+  for (const fieldName in json) {
+    //
+    const field = json[fieldName];
+
+    if (field.type === "string") {
+      defaultValueObject[fieldName] = "";
+      continue;
+    }
+
+    if (field.type === "number") {
+      defaultValueObject[fieldName] = 0;
+      continue;
+    }
+
+    if (field.type === "boolean") {
+      defaultValueObject[fieldName] = false;
+      continue;
+    }
+
+    if (field.type === "object") {
+      defaultValueObject[fieldName] = generateEmptyValueJSON(field.properties);
+      continue;
+    }
+
+    if (field.type === "array") {
+      defaultValueObject[fieldName] = [];
+      continue;
+    }
+
+    if (field.type === "date") {
+      defaultValueObject[fieldName] = dayjs.utc("1000-01-01 00:00:00", dateTimeFormat);
+      continue;
     }
   }
   return defaultValueObject;
@@ -266,7 +312,7 @@ const DynamicForm: React.FC<{ json: InputType }> = ({ json }) => {
   const [jsonObject, setJSONObject] = useState(generateDefaultValueJSON(json));
 
   const onClear = () => {
-    setJSONObject({});
+    setJSONObject(generateEmptyValueJSON(json));
   };
 
   const onReset = () => {
@@ -282,6 +328,7 @@ const DynamicForm: React.FC<{ json: InputType }> = ({ json }) => {
       autoComplete="off"
       form={form}
       initialValues={jsonObject}
+      labelWrap
     >
       <Row>
         <Col>
