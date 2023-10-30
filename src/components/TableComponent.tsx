@@ -4,6 +4,8 @@ import Table, { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { ColumnType, FilterValue } from "antd/es/table/interface";
 import React, { useEffect, useState } from "react";
 import { HTTPData } from "../data/data_type";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import { CopyOutlined } from "@ant-design/icons";
 
 const baseUrl = "http://localhost:3000";
 
@@ -53,7 +55,19 @@ export const TableComponent = (props: TableComponentProps) => {
         title: "ID",
         key: "id",
         dataIndex: "id",
-        render: (item, allData) => <a onClick={() => setModalData(allData)}>{item}</a>,
+        render: (item, allData) => {
+          return (
+            <>
+              <CopyToClipboard
+                text={item}
+                onCopy={() => message.success(`copy id ${item}`)}
+              >
+                <CopyOutlined />
+              </CopyToClipboard>
+              <a onClick={() => setModalData(allData)}> {item}</a>
+            </>
+          );
+        },
       },
     ];
 
@@ -111,12 +125,28 @@ export const TableComponent = (props: TableComponentProps) => {
     }
 
     try {
-      const url = `${baseUrl}${props.userData.path}?size=${tableParams.pagination?.pageSize}&page=${tableParams.pagination?.current}`;
+      let theQueries = "";
+      if (props.userData.query) {
+        Object.keys(props.userData.query).forEach((param) => {
+          // handle page and size manually
+          if (param === "page" || param === "size") {
+            return;
+          }
+
+          // const value = formQuery.getFieldValue(param);
+          // theQueries = `${theQueries === "" ? "" : `${theQueries}&`}${param}=${value}`;
+        });
+      }
+
+      const url = `${baseUrl}${props.userData.path}?size=${tableParams.pagination?.pageSize}&page=${tableParams.pagination?.current}&${theQueries}`;
       const response = await fetch(url, {
         method: props.userData.method,
         headers: { "Content-Type": "application/json" },
       });
       const result = await response.json();
+
+      // TODO concerning about the status code returned from the server which defined from the response
+      response.status;
 
       setItems(result.items);
 
@@ -158,12 +188,10 @@ export const TableComponent = (props: TableComponentProps) => {
 
         <h2>{props.userData.description}</h2>
         <Space style={{ marginBottom: "10px" }}>
-          <Button
-            size="small"
-            onClick={() => reload()}
-          >
-            Reload
-          </Button>
+          <Button onClick={() => reload()}>Reload</Button>
+          <Button>Header</Button>
+          <Button>Param</Button>
+          <Button>Query</Button>
         </Space>
         <Table
           size="small"
@@ -172,7 +200,7 @@ export const TableComponent = (props: TableComponentProps) => {
             ...rowSelection,
           }}
           rowKey={(x) => x.id}
-          columns={columns(props.userData.response![200].items.properties)}
+          columns={columns(props.userData.response![200].content.items.properties)}
           dataSource={items}
           pagination={tableParams.pagination}
           onChange={handleTableChange}
