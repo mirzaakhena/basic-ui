@@ -1,11 +1,12 @@
 import JsonView from "@uiw/react-json-view";
-import { Button, Modal, Space, message } from "antd";
+import { Button, Collapse, Form, Input, Modal, Space, message } from "antd";
 import Table, { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { ColumnType, FilterValue } from "antd/es/table/interface";
 import React, { useEffect, useState } from "react";
 import { HTTPData } from "../data/data_type";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { CopyOutlined } from "@ant-design/icons";
+import { useForm } from "antd/es/form/Form";
 
 const baseUrl = "http://localhost:3000";
 
@@ -32,6 +33,12 @@ interface TableComponentProps {
 
 export const TableComponent = (props: TableComponentProps) => {
   //
+
+  const [formHeader] = useForm();
+  const [formParam] = useForm();
+  const [formQuery] = useForm();
+  const [formCookie] = useForm();
+  // const [formBody] = useForm();
 
   const [modalData, setModalData] = useState<Item | null>(null);
 
@@ -125,6 +132,22 @@ export const TableComponent = (props: TableComponentProps) => {
     }
 
     try {
+      let theHeaders = { "Content-Type": "application/json" };
+      if (props.userData.header) {
+        Object.keys(props.userData.header).forEach((param) => {
+          const value = formHeader.getFieldValue(param);
+          theHeaders = { ...theHeaders, [param]: value };
+        });
+      }
+
+      let path = props.userData.path;
+      if (props.userData.param) {
+        Object.keys(props.userData.param).forEach((param) => {
+          const value = formParam.getFieldValue(param);
+          path = path.replace(`:${param}`, `${value}`); // TODO fix {${param}} later
+        });
+      }
+
       let theQueries = "";
       if (props.userData.query) {
         Object.keys(props.userData.query).forEach((param) => {
@@ -132,16 +155,15 @@ export const TableComponent = (props: TableComponentProps) => {
           if (param === "page" || param === "size") {
             return;
           }
-
-          // const value = formQuery.getFieldValue(param);
-          // theQueries = `${theQueries === "" ? "" : `${theQueries}&`}${param}=${value}`;
+          const value = formQuery.getFieldValue(param);
+          theQueries = `${theQueries === "" ? "" : `${theQueries}&`}${param}=${value}`;
         });
       }
 
-      const url = `${baseUrl}${props.userData.path}?size=${tableParams.pagination?.pageSize}&page=${tableParams.pagination?.current}&${theQueries}`;
+      const url = `${baseUrl}${path}?size=${tableParams.pagination?.pageSize}&page=${tableParams.pagination?.current}&${theQueries}`;
       const response = await fetch(url, {
         method: props.userData.method,
-        headers: { "Content-Type": "application/json" },
+        headers: theHeaders,
       });
       const result = await response.json();
 
@@ -185,6 +207,166 @@ export const TableComponent = (props: TableComponentProps) => {
         </Modal>
 
         {contextHolder}
+
+        {props.userData?.cookie ? (
+          <Collapse
+            style={{
+              marginTop: "20px",
+            }}
+            collapsible="header"
+            defaultActiveKey={["1"]}
+            items={[
+              {
+                key: "1",
+                label: "Cookie",
+                children: (
+                  <Form form={formCookie}>
+                    {
+                      //
+                      props.userData?.cookie !== undefined ? ( //
+                        Object.keys(props.userData?.cookie).map((x) => {
+                          return (
+                            <Form.Item
+                              key={x}
+                              label={x}
+                              name={x}
+                            >
+                              <Input />
+                            </Form.Item>
+                          );
+                        })
+                      ) : (
+                        <></>
+                      )
+                    }
+                  </Form>
+                ),
+              },
+            ]}
+          />
+        ) : (
+          <></>
+        )}
+
+        {props.userData?.header ? (
+          <Collapse
+            style={{
+              marginTop: "20px",
+            }}
+            collapsible="header"
+            defaultActiveKey={["1"]}
+            items={[
+              {
+                key: "1",
+                label: "Header",
+                children: (
+                  <Form form={formHeader}>
+                    {
+                      //
+                      props.userData?.header !== undefined ? ( //
+                        Object.keys(props.userData?.header).map((x) => {
+                          return (
+                            <Form.Item
+                              key={x}
+                              label={x}
+                              name={x}
+                            >
+                              <Input />
+                            </Form.Item>
+                          );
+                        })
+                      ) : (
+                        <></>
+                      )
+                    }
+                  </Form>
+                ),
+              },
+            ]}
+          />
+        ) : (
+          <></>
+        )}
+
+        {props.userData?.param ? (
+          <Collapse
+            style={{
+              marginTop: "20px",
+            }}
+            collapsible="header"
+            defaultActiveKey={["1"]}
+            items={[
+              {
+                key: "1",
+                label: "Params",
+                children: (
+                  <Form form={formParam}>
+                    {
+                      //
+                      props.userData?.param !== undefined ? ( //
+                        Object.keys(props.userData?.param).map((x) => {
+                          return (
+                            <Form.Item
+                              key={x}
+                              label={x}
+                              name={x}
+                            >
+                              <Input />
+                            </Form.Item>
+                          );
+                        })
+                      ) : (
+                        <></>
+                      )
+                    }
+                  </Form>
+                ),
+              },
+            ]}
+          />
+        ) : (
+          <></>
+        )}
+
+        {props.userData?.query ? (
+          <Collapse
+            style={{
+              marginTop: "20px",
+            }}
+            collapsible="header"
+            defaultActiveKey={["1"]}
+            items={[
+              {
+                key: "1",
+                label: "Query",
+                children: (
+                  <Form form={formQuery}>
+                    {
+                      //
+                      props.userData?.query !== undefined ? ( //
+                        Object.keys(props.userData?.query).map((x) => {
+                          return (
+                            <Form.Item
+                              key={x}
+                              label={x}
+                              name={x}
+                            >
+                              <Input />
+                            </Form.Item>
+                          );
+                        })
+                      ) : (
+                        <></>
+                      )
+                    }
+                  </Form>
+                ),
+              },
+            ]}
+          />
+        ) : (
+          <></>
+        )}
 
         <h2>{props.userData.description}</h2>
         <Space style={{ marginBottom: "10px" }}>

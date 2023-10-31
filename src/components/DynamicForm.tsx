@@ -13,19 +13,14 @@ const baseUrl = "http://localhost:3000";
 
 const dateTimeFormat = "YYYY-MM-DD HH:mm:ss";
 
-export type BasicType = {
+type GeneralInfoType = {
   default?: any;
   summary?: string;
   description?: string;
   required?: boolean;
 };
 
-// export type StringField = {
-//   type: "string";
-//   enum?: (string | boolean | number)[];
-// };
-
-export type EnumerableField = {
+type EnumerableField = {
   type: "string" | "number" | "boolean" | "date";
   enum?: (string | boolean | number)[];
   textAreaLine?: number;
@@ -33,17 +28,17 @@ export type EnumerableField = {
   isPassword?: boolean;
 };
 
-export type ObjectField = {
+type ObjectField = {
   type: "object";
-  properties: Record<string, BasicType & (EnumerableField | ObjectField | ArrayField)>;
+  properties: Record<string, GeneralInfoType & (EnumerableField | ObjectField | ArrayField)>;
 };
 
-export type ArrayField = {
+type ArrayField = {
   type: "array";
-  items: BasicType & (EnumerableField | ObjectField | ArrayField);
+  items: GeneralInfoType & (EnumerableField | ObjectField | ArrayField);
 };
 
-export type InputType = Record<string, BasicType & (EnumerableField | ObjectField | ArrayField)>;
+export type InputType = Record<string, GeneralInfoType & (EnumerableField | ObjectField | ArrayField)>;
 
 const generateFormItem = (fieldNames: (string | number)[], field: InputType[keyof InputType]) => {
   //
@@ -379,45 +374,36 @@ const DynamicForm: React.FC<{ httpData: HTTPData | undefined }> = ({ httpData })
 
   const [modalData, setModalData] = useState(null);
 
-  const onClear = () => {
-    setJSONObject(generateEmptyValueJSON(jsonBody));
-  };
+  const onClear = () => setJSONObject({});
 
-  const onReset = () => {
-    setJSONObject(generateDefaultValueJSON(jsonBody));
-  };
+  const onReset = () => setJSONObject(generateDefaultValueJSON(jsonBody));
 
-  const onDisplayResult = () => {
-    setModalData(formBody.getFieldsValue());
-  };
+  const onDisplayResult = () => setModalData(formBody.getFieldsValue());
 
   const submitForm = () => {
+    //
+
     if (!httpData) {
       return <></>;
     }
 
-    let path = httpData.path;
-
-    // replace url path from :value into {value}
-    if (httpData.param) {
-      Object.keys(httpData.param).forEach((param) => {
-        const value = formParam.getFieldValue(param);
-        path = path.replace(`:${param}`, `${value}`); // TODO fix {${param}} later
-      });
-    }
-
     formBody.validateFields().then(async (values) => {
       try {
-        let theHeaders = { "Content-Type": "application/json" };
+        let path = httpData.path;
+        if (httpData.param) {
+          Object.keys(httpData.param).forEach((param) => {
+            const value = formParam.getFieldValue(param);
+            path = path.replace(`:${param}`, `${value}`); // TODO fix {${param}} later
+          });
+        }
 
+        let theHeaders = { "Content-Type": "application/json" };
         if (httpData.header) {
           Object.keys(httpData.header).forEach((param) => {
             const value = formHeader.getFieldValue(param);
             theHeaders = { ...theHeaders, [param]: value };
           });
         }
-
-        // TODO construct Query
 
         let theQueries = "";
         if (httpData.query) {
@@ -454,7 +440,7 @@ const DynamicForm: React.FC<{ httpData: HTTPData | undefined }> = ({ httpData })
   };
 
   useEffect(() => {
-    formBody.resetFields();
+    setTimeout(() => formBody.resetFields(), 200);
   }, [jsonObject]);
 
   return (
@@ -678,7 +664,7 @@ const DynamicForm: React.FC<{ httpData: HTTPData | undefined }> = ({ httpData })
             )}
           </Form>
 
-          <Space style={{ marginTop: "10px" }}>
+          <Space style={{ marginTop: "10px", marginBottom: "20px" }}>
             <Button
               type="primary"
               onClick={submitForm}

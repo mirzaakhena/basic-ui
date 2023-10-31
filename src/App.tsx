@@ -3,7 +3,6 @@ import { Button, Layout, Menu } from "antd";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { SelectInfo, SubMenuType } from "rc-menu/lib/interface";
 import { TableComponent } from "./components/TableComponent";
-// import { FormComponent } from "./components/FormComponent";
 import { HTTPData } from "./data/data_type";
 import DynamicForm from "./components/DynamicForm";
 
@@ -11,58 +10,27 @@ const baseUrl = "http://localhost:3000";
 
 const { Header, Sider, Content } = Layout;
 
-type UsecaseController = { tag: string; httpDatas: HTTPData[] };
-
 export const App: React.FC = () => {
   //
 
-  const [controllers, setControllers] = useState<UsecaseController[]>([]);
+  const [usecaseComp, setUsecaseComp] = useState<TransformedJson>();
 
   const [items, setItems] = useState<SubMenuType[]>([]);
 
   const [collapsedState, setCollapsedState] = useState(false);
 
-  const [selectedMenu, setSelectedMenu] = useState<HTTPData>();
+  const [selectedMenu, setSelectedMenu] = useState<React.ReactNode>();
 
   const toggle = () => {
     setCollapsedState(!collapsedState);
   };
 
-  const renderContent = () => {
-    // TODO fix later checking conditional
-    if (selectedMenu?.usecase.toLocaleLowerCase().endsWith("getall")) {
-      return (
-        <TableComponent
-          userData={selectedMenu}
-          // setUserData={setSelectedMenu}
-        />
-      );
-    }
-
-    return (
-      <DynamicForm httpData={selectedMenu} />
-      // <FormComponent
-      //   userData={selectedMenu}
-      //   // setUserData={setSelectedMenu}
-      // />
-    );
-  };
-
   const onSelectSidebar = (selectInfo: SelectInfo) => {
-    const tags = controllers.find((c) => c.tag === selectInfo.keyPath[1]);
-    if (!tags) {
-      return;
-    }
-
-    const httpData = tags.httpDatas.find((x) => x.usecase === selectInfo.keyPath[0]);
-    if (!httpData) {
-      return;
-    }
-
-    setSelectedMenu(httpData);
+    setSelectedMenu(usecaseComp![selectInfo.keyPath[0]]);
   };
 
   const reload = async () => {
+    //
     const url = `${baseUrl}/controllers`;
     const response = await fetch(url, {
       method: "GET",
@@ -70,7 +38,7 @@ export const App: React.FC = () => {
     });
     const result = await response.json();
 
-    setControllers(result);
+    setUsecaseComp(transformJson(result));
 
     setItems(
       result.map((x: any) => {
@@ -135,7 +103,6 @@ export const App: React.FC = () => {
             theme="dark"
             mode="inline"
             defaultSelectedKeys={["1"]}
-            // onSelect={(x) => setSelectedMenu(x.key)}
             onSelect={onSelectSidebar}
             items={items}
             key={items.length}
@@ -153,9 +120,29 @@ export const App: React.FC = () => {
             // overflowY: "auto", // enable vertical scrolling
           }}
         >
-          {renderContent()}
+          {selectedMenu}
         </Content>
       </Layout>
     </Layout>
   );
 };
+
+type OriginalJson = {
+  tag: string;
+  httpDatas: HTTPData[];
+};
+
+type TransformedJson = Record<string, React.ReactNode>;
+
+function transformJson(originalJson: OriginalJson[]): TransformedJson {
+  const transformedJson: TransformedJson = {};
+
+  originalJson.forEach((item) => {
+    item.httpDatas.forEach((httpData) => {
+      const isGetAllPrefix = httpData.usecase.toLocaleLowerCase().endsWith("getall");
+      transformedJson[httpData.usecase] = isGetAllPrefix ? <TableComponent userData={httpData} /> : <DynamicForm httpData={httpData} />;
+    });
+  });
+
+  return transformedJson;
+}
