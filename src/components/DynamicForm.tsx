@@ -5,7 +5,7 @@ import { useForm } from "antd/es/form/Form";
 import dayjs from "dayjs";
 import dayjsPluginUTC from "dayjs/plugin/utc";
 import React, { useEffect, useState } from "react";
-import { HTTPData } from "../data/data_type";
+import { HTTPData, InputType } from "../data/data_type";
 
 dayjs.extend(dayjsPluginUTC);
 
@@ -13,32 +13,32 @@ const baseUrl = "http://localhost:3000";
 
 const dateTimeFormat = "YYYY-MM-DD HH:mm:ss";
 
-type GeneralInfoType = {
-  default?: any;
-  summary?: string;
-  description?: string;
-  required?: boolean;
-};
+// type GeneralInfoType = {
+//   default?: any;
+//   summary?: string;
+//   description?: string;
+//   required?: boolean;
+// };
 
-type EnumerableField = {
-  type: "string" | "number" | "boolean" | "date";
-  enum?: (string | boolean | number)[];
-  textAreaLine?: number;
-  maxLength?: number;
-  isPassword?: boolean;
-};
+// type EnumerableField = {
+//   type: "string" | "number" | "boolean" | "date";
+//   enum?: (string | boolean | number)[];
+//   textAreaLine?: number;
+//   maxLength?: number;
+//   isPassword?: boolean;
+// };
 
-type ObjectField = {
-  type: "object";
-  properties: Record<string, GeneralInfoType & (EnumerableField | ObjectField | ArrayField)>;
-};
+// type ObjectField = {
+//   type: "object";
+//   properties: Record<string, GeneralInfoType & (EnumerableField | ObjectField | ArrayField)>;
+// };
 
-type ArrayField = {
-  type: "array";
-  items: GeneralInfoType & (EnumerableField | ObjectField | ArrayField);
-};
+// type ArrayField = {
+//   type: "array";
+//   items: GeneralInfoType & (EnumerableField | ObjectField | ArrayField);
+// };
 
-export type InputType = Record<string, GeneralInfoType & (EnumerableField | ObjectField | ArrayField)>;
+// export type InputType = Record<string, GeneralInfoType & (EnumerableField | ObjectField | ArrayField)>;
 
 const generateFormItem = (fieldNames: (string | number)[], field: InputType[keyof InputType]) => {
   //

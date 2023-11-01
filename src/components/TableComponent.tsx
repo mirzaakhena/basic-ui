@@ -3,7 +3,7 @@ import { Button, Collapse, Form, Input, Modal, Space, message } from "antd";
 import Table, { ColumnsType, TablePaginationConfig } from "antd/es/table";
 import { ColumnType, FilterValue } from "antd/es/table/interface";
 import React, { useEffect, useState } from "react";
-import { HTTPData } from "../data/data_type";
+import { ArrayField, HTTPData, ObjectField } from "../data/data_type";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { CopyOutlined } from "@ant-design/icons";
 import { useForm } from "antd/es/form/Form";
@@ -382,7 +382,7 @@ export const TableComponent = (props: TableComponentProps) => {
             ...rowSelection,
           }}
           rowKey={(x) => x.id}
-          columns={columns(props.userData.response![200].content.items.properties)}
+          columns={columns(((props.userData.response![200].content["items"] as ArrayField).items as ObjectField).properties)}
           dataSource={items}
           pagination={tableParams.pagination}
           onChange={handleTableChange}
